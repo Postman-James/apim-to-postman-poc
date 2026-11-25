@@ -1,63 +1,26 @@
 {
-  "info": {
-    "name": "Peer-to-Peer Payments API - Contract Tests",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Contract gate generated from the APIM-exported spec. Collection-level script validates every response against the spec's documented status codes and schema shapes."
-  },
-  "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bearerToken}}", "type": "string" } ] },
-  "variable": [ { "key": "baseUrl", "value": "https://api.acmefinance.example.com/p2p/v1" } ],
-  "event": [
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "pm.test('Contract: Content-Type is JSON', function(){ pm.expect((pm.response.headers.get('Content-Type')||'')).to.include('application/json'); });",
-          "pm.test('Contract: documented status code', function(){ pm.expect([200,201,400,401,404]).to.include(pm.response.code); });",
-          "var body=null; try { body = pm.response.json(); } catch(e){}",
-          "var path = pm.request.url.getPath();",
-          "var method = pm.request.method;",
-          "if (body){",
-          "  if (pm.response.code >= 400){",
-          "    pm.test('Contract: error shape {code,message}', function(){ pm.expect(body).to.have.property('code'); pm.expect(body).to.have.property('message'); });",
-          "  } else if (method === 'GET' && path.indexOf('/balance') !== -1){",
-          "    pm.test('Contract: Balance schema', function(){ pm.expect(body).to.have.property('accountId'); pm.expect(body).to.have.property('available'); pm.expect(body).to.have.property('currency'); pm.expect(body.available).to.be.a('number'); });",
-          "  } else if (method === 'GET' && path.indexOf('/payments') !== -1 && path.indexOf('/payments/') === -1){",
-          "    pm.test('Contract: list returns data array of Payment', function(){ pm.expect(body).to.have.property('data'); pm.expect(body.data).to.be.an('array'); (body.data||[]).forEach(function(it){ ['id','amount','currency','status','fromAccount','toAccount'].forEach(function(k){ pm.expect(it).to.have.property(k); }); }); });",
-          "  } else if (path.indexOf('/payments') !== -1){",
-          "    pm.test('Contract: Payment schema', function(){ ['id','amount','currency','status','fromAccount','toAccount'].forEach(function(k){ pm.expect(body).to.have.property(k); }); pm.expect(['USD','EUR','GBP','CAD']).to.include(body.currency); pm.expect(['pending','settled','failed']).to.include(body.status); });",
-          "  }",
-          "}"
-        ]
-      }
-    }
-  ],
-  "item": [
-    {
-      "name": "payments",
-      "item": [
-        {
-          "name": "List payments",
-          "request": { "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": { "raw": "{{baseUrl}}/payments?limit=25", "host": [ "{{baseUrl}}" ], "path": [ "payments" ], "query": [ { "key": "limit", "value": "25" } ] } }
-        },
-        {
-          "name": "Create a payment",
-          "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }, { "key": "x-mock-response-code", "value": "201" } ], "body": { "mode": "raw", "raw": "{\"amount\":100.5,\"currency\":\"USD\",\"fromAccount\":\"acct_1\",\"toAccount\":\"acct_2\",\"memo\":\"poc\"}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/payments", "host": [ "{{baseUrl}}" ], "path": [ "payments" ] } }
-        },
-        {
-          "name": "Get a payment by id",
-          "request": { "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": { "raw": "{{baseUrl}}/payments/:paymentId", "host": [ "{{baseUrl}}" ], "path": [ "payments", ":paymentId" ], "variable": [ { "key": "paymentId", "value": "string" } ] } }
-        }
-      ]
-    },
-    {
-      "name": "accounts",
-      "item": [
-        {
-          "name": "Get account balance",
-          "request": { "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": { "raw": "{{baseUrl}}/accounts/:accountId/balance", "host": [ "{{baseUrl}}" ], "path": [ "accounts", ":accountId", "balance" ], "variable": [ { "key": "accountId", "value": "string" } ] } }
-        }
-      ]
-    }
-  ]
+  "info": { "name": "Peer-to-Peer Payments API - Contract Tests", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json", "description": "Contract gate generated from the real APIM export (az apim api export of banking-apim-demo/p2p-payments). Validates documented status codes and the Error envelope schema across all 8 P2P endpoints." },
+  "variable": [ { "key": "baseUrl", "value": "https://api.bankofpostman.com/p2p-payments" } ],
+  "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+    "pm.test('Contract: documented status code', function(){ pm.expect([200,201,202,204,400,401,403,404,422,429,500]).to.include(pm.response.code); });",
+    "var txt = pm.response.text();",
+    "if (txt && txt.length > 0) {",
+    "  var ct = pm.response.headers.get('Content-Type') || '';",
+    "  pm.test('Contract: JSON content-type', function(){ pm.expect(ct).to.include('application/json'); });",
+    "  var body; try { body = pm.response.json(); } catch(e){ body = null; }",
+    "  if (body && pm.response.code >= 400) {",
+    "    pm.test('Contract: Error envelope {error:{code,message}}', function(){ pm.expect(body).to.have.property('error'); pm.expect(body.error).to.have.property('code'); pm.expect(body.error).to.have.property('message'); });",
+    "  }",
+    "}"
+  ] } } ],
+  "item": [ { "name": "Peer-to-Peer", "item": [
+    { "name": "Get transfer limits", "request": { "method": "GET", "header": [ {"key":"Accept","value":"application/json"}, {"key":"Ocp-Apim-Subscription-Key","value":"{{subscriptionKey}}"}, {"key":"x-mock-response-code","value":"200"} ], "url": { "raw": "{{baseUrl}}/limits", "host": ["{{baseUrl}}"], "path": ["limits"] } } },
+    { "name": "List payment requests", "request": { "method": "GET", "header": [ {"key":"Accept","value":"application/json"}, {"key":"Ocp-Apim-Subscription-Key","value":"{{subscriptionKey}}"}, {"key":"x-mock-response-code","value":"200"} ], "url": { "raw": "{{baseUrl}}/requests?page=1&per_page=20", "host": ["{{baseUrl}}"], "path": ["requests"], "query": [{"key":"page","value":"1"},{"key":"per_page","value":"20"}] } } },
+    { "name": "Request money", "request": { "method": "POST", "header": [ {"key":"Content-Type","value":"application/json"}, {"key":"Accept","value":"application/json"}, {"key":"Ocp-Apim-Subscription-Key","value":"{{subscriptionKey}}"}, {"key":"x-mock-response-code","value":"201"} ], "body": { "mode": "raw", "raw": "{\"payer\":\"user-123\",\"amount\":1500,\"currency\":\"USD\",\"memo\":\"poc\"}", "options": {"raw":{"language":"json"}} }, "url": { "raw": "{{baseUrl}}/requests", "host": ["{{baseUrl}}"], "path": ["requests"] } } },
+    { "name": "Decline payment request", "request": { "method": "POST", "header": [ {"key":"Content-Type","value":"application/json"}, {"key":"Accept","value":"application/json"}, {"key":"Ocp-Apim-Subscription-Key","value":"{{subscriptionKey}}"}, {"key":"x-mock-response-code","value":"202"} ], "body": { "mode": "raw", "raw": "{\"reason\":\"poc\"}", "options": {"raw":{"language":"json"}} }, "url": { "raw": "{{baseUrl}}/requests/:request_id/decline", "host": ["{{baseUrl}}"], "path": ["requests",":request_id","decline"], "variable": [{"key":"request_id","value":"string"}] } } },
+    { "name": "Pay payment request", "request": { "method": "POST", "header": [ {"key":"Content-Type","value":"application/json"}, {"key":"Accept","value":"application/json"}, {"key":"Ocp-Apim-Subscription-Key","value":"{{subscriptionKey}}"}, {"key":"x-mock-response-code","value":"201"} ], "body": { "mode": "raw", "raw": "{\"funding_source_id\":\"acct-1\",\"delivery_speed\":\"standard\"}", "options": {"raw":{"language":"json"}} }, "url": { "raw": "{{baseUrl}}/requests/:request_id/pay", "host": ["{{baseUrl}}"], "path": ["requests",":request_id","pay"], "variable": [{"key":"request_id","value":"string"}] } } },
+    { "name": "List P2P transfers", "request": { "method": "GET", "header": [ {"key":"Accept","value":"application/json"}, {"key":"Ocp-Apim-Subscription-Key","value":"{{subscriptionKey}}"}, {"key":"x-mock-response-code","value":"200"} ], "url": { "raw": "{{baseUrl}}/transfers?page=1&per_page=20", "host": ["{{baseUrl}}"], "path": ["transfers"], "query": [{"key":"page","value":"1"},{"key":"per_page","value":"20"}] } } },
+    { "name": "Send money", "request": { "method": "POST", "header": [ {"key":"Content-Type","value":"application/json"}, {"key":"Accept","value":"application/json"}, {"key":"Ocp-Apim-Subscription-Key","value":"{{subscriptionKey}}"}, {"key":"x-mock-response-code","value":"201"} ], "body": { "mode": "raw", "raw": "{\"recipient\":\"user-456\",\"amount\":1500,\"currency\":\"USD\",\"delivery_speed\":\"standard\",\"memo\":\"poc\"}", "options": {"raw":{"language":"json"}} }, "url": { "raw": "{{baseUrl}}/transfers", "host": ["{{baseUrl}}"], "path": ["transfers"] } } },
+    { "name": "Get P2P transfer", "request": { "method": "GET", "header": [ {"key":"Accept","value":"application/json"}, {"key":"Ocp-Apim-Subscription-Key","value":"{{subscriptionKey}}"}, {"key":"x-mock-response-code","value":"200"} ], "url": { "raw": "{{baseUrl}}/transfers/:transfer_id", "host": ["{{baseUrl}}"], "path": ["transfers",":transfer_id"], "variable": [{"key":"transfer_id","value":"string"}] } } }
+  ] } ]
 }
