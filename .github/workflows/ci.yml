@@ -1,8 +1,8 @@
-name: API Contract CI
+name: API CI
 
-# Mirrors a typical Azure DevOps pipeline: install the Postman CLI,
-# lint the spec for governance, then run the contract and smoke gates.
-# The spec in this repo is the source of truth; Postman syncs from it.
+# Four sections, in order: Linting -> Smoke tests -> Contract tests -> Update to cloud.
+# Gate collections live under tests/ (authored for CI) so they never collide with the
+# native-Git resources under postman/ and .postman/.
 
 on:
   push:
@@ -12,20 +12,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  api-gates:
+  lint:
+    name: Linting
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
-
-      - name: Governance lint (spec)
-        # Default fail-severity is ERROR, so governance WARNINGS report without failing the build.
-        # Governance rules need a logged-in session. With POSTMAN_API_KEY set as a repo secret,
-        # this lints against your team's rulesets (OWASP, AI-readiness). Without it, we fall back
-        # to syntax-only linting so the build still runs.
+      - name: Lint spec (governance)
+        # Default fail-severity is ERROR, so governance WARNINGS report without failing.
+        # With POSTMAN_API_KEY set, lints against the team's rulesets (OWASP, AI-readiness);
+        # without it, falls back to syntax-only so the build still runs.
         env:
           POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
         run: |
@@ -33,12 +30,56 @@ jobs:
             echo "Linting against team governance rulesets."
             postman spec lint ./openapi/p2p-payments.yaml --no-report-events
           else
-            echo "POSTMAN_API_KEY not set; running syntax-only lint. Add the secret for governance (OWASP, AI-readiness)."
+            echo "POSTMAN_API_KEY not set; running syntax-only lint. Add the secret for governance."
             postman spec lint ./openapi/p2p-payments.yaml --no-report-events --issueType=syntax
           fi
 
-      - name: Smoke tests
-        run: postman collection run ./postman/collections/smoke-tests.json -e ./postman/environments/dev-mock.postman_environment.json
+  smoke:
+    name: Smoke tests
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Run smoke tests
+        run: postman collection run ./tests/collections/smoke-tests.json -e ./tests/environments/dev-mock.postman_environment.json
 
-      - name: Contract tests
-        run: postman collection run ./postman/collections/contract-tests.json -e ./postman/environments/dev-mock.postman_environment.json
+  contract:
+    name: Contract tests
+    needs: smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Run contract tests
+        run: postman collection run ./tests/collections/contract-tests.json -e ./tests/environments/dev-mock.postman_environment.json
+
+  update-cloud:
+    name: Update to cloud
+    needs: [ smoke, contract ]
+    # Only publish from the integration branch, never on PRs.
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Publish workspace to Postman Cloud
+        # Pushes the native-Git resources (postman/ + .postman/resources.yaml) to the
+        # cloud workspace. Needs a POSTMAN_API_KEY secret; skips cleanly without one so
+        # the pipeline stays green until it's wired.
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+        run: |
+          if [ -z "$POSTMAN_API_KEY" ]; then
+            echo "POSTMAN_API_KEY not set - skipping cloud publish. Add the secret (private repo recommended) to enable 'postman workspace push'."
+            exit 0
+          fi
+          if [ ! -f .postman/resources.yaml ]; then
+            echo "No .postman/resources.yaml - native Git not wired in this repo. Skipping."
+            exit 0
+          fi
+          postman login --with-api-key "$POSTMAN_API_KEY"
+          postman workspace push -y
