@@ -1,6 +1,0 @@
-name: P2P - Development (Mock)
-values:
-  - key: baseUrl
-    value: 'https://bd717398-5295-4dbf-8a02-f06a8a33e5ed.mock.pstmn.io/p2p-payments'
-  - key: subscriptionKey
-    value: demo-subscription-key

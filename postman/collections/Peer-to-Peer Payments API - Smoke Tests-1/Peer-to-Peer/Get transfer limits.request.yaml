@@ -1,8 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/limits"
-method: GET
-headers:
-  Accept: application/json
-  Ocp-Apim-Subscription-Key: "{{subscriptionKey}}"
-  x-mock-response-code: "200"
-order: 1000
