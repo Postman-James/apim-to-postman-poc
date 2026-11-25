@@ -1,0 +1,93 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/requests"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Ocp-Apim-Subscription-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "amount": 1500,
+        "currency": "USD",
+        "memo": "Dinner last night 🍕",
+        "payer": "string"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "amount": 1500,
+        "currency": "USD",
+        "expires_at": "string",
+        "memo": "Dinner last night 🍕",
+        "payer_id": "string",
+        "request_id": "string",
+        "requester_id": "string",
+        "status": "pending"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 1500,
+            "description": "Transaction amount",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD",
+            "description": "ISO 4217 currency code"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "memo": {
+            "type": "string",
+            "maxLength": 250,
+            "example": "Dinner last night 🍕",
+            "description": "Payment note visible to both parties"
+          },
+          "payer_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requester_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "declined",
+              "expired",
+              "cancelled"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "status"
+        ]
+      }
+order: 1000

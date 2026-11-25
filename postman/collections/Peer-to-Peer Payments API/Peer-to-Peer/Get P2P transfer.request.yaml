@@ -1,0 +1,25 @@
+$kind: http-request
+description: Retrieve transfer details including delivery speed, funding source, and settlement timing.
+url: "{{baseUrl}}/transfers/:transfer_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: transfer_id
+    value: string
+    description: Unique transfer id
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+settings: {}
+examples: ./.resources/Get P2P transfer.resources/examples
+order: 8000

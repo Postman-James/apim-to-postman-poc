@@ -1,0 +1,42 @@
+$kind: http-request
+description: Decline an incoming payment request with an optional reason.
+url: "{{baseUrl}}/requests/:request_id/decline"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: request_id
+    value: string
+    description: Unique request id
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "reason": "string"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string",
+          "description": "Optional decline reason"
+        }
+      }
+    }
+settings: {}
+examples: ./.resources/Decline payment request.resources/examples
+order: 4000

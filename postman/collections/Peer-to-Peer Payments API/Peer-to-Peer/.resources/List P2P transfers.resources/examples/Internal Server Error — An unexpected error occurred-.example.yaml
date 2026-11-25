@@ -1,0 +1,101 @@
+$kind: http-example
+name: Internal Server Error — An unexpected error occurred.
+request:
+  url: "{{baseUrl}}/transfers?page=1&per_page=20&sort_by=string&sort_order=desc&direction=sent&status=string"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Ocp-Apim-Subscription-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  queryParams:
+    - key: page
+      value: "1"
+      description: Page number for pagination
+    - key: per_page
+      value: "20"
+      description: Number of results per page (max 100)
+    - key: sort_by
+      value: string
+      description: Field to sort results by
+    - key: sort_order
+      value: desc
+      description: Sort direction
+    - key: direction
+      value: sent
+      description: Filter by sent or received
+    - key: status
+      value: string
+      description: Filter by status
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": {
+          "code": "INTERNAL_ERROR",
+          "message": "An unexpected error occurred. Please try again later.",
+          "request_id": "req-f6a7b8c9-d0e1-2345-fabc-456789012345"
+        }
+      }
+    $type: |-
+      {
+        "description": "Standard error response",
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "VALIDATION_ERROR",
+                "description": "Machine-readable error code"
+              },
+              "details": {
+                "type": "array",
+                "description": "Detailed error information",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "example": "email",
+                      "description": "The field that caused the error"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "example": "Must be a valid email address",
+                      "description": "Description of the validation failure"
+                    }
+                  }
+                }
+              },
+              "message": {
+                "type": "string",
+                "example": "The request body contains invalid fields.",
+                "description": "Human-readable error message"
+              },
+              "request_id": {
+                "type": "string",
+                "example": "req-550e8400-e29b-41d4-a716-446655440000",
+                "description": "Unique identifier for this request, useful for support",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "request_id"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 5000

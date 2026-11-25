@@ -1,0 +1,54 @@
+$kind: http-request
+description: Fulfill an incoming payment request. Debits the specified funding source and credits the requester.
+url: "{{baseUrl}}/requests/:request_id/pay"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: request_id
+    value: string
+    description: Unique request id
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "delivery_speed": "standard",
+      "funding_source_id": "string"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "delivery_speed": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "instant"
+          ],
+          "description": "Standard (next-day ACH) or instant (RTP/debit push)"
+        },
+        "funding_source_id": {
+          "type": "string",
+          "description": "Source account or card"
+        }
+      },
+      "required": [
+        "funding_source_id"
+      ]
+    }
+settings: {}
+examples: ./.resources/Pay payment request.resources/examples
+order: 5000

@@ -1,0 +1,59 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/requests/:request_id/pay"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Ocp-Apim-Subscription-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  pathVariables:
+    - key: request_id
+      value: string
+      description: Unique request id
+  body:
+    type: json
+    content: |-
+      {
+        "delivery_speed": "standard",
+        "funding_source_id": "string"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "request_id": "string",
+        "status": "completed",
+        "transfer_id": "string"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "example": "completed"
+          },
+          "transfer_id": {
+            "type": "string",
+            "description": "P2P transfer identifier",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "request_id"
+        ]
+      }
+order: 1000

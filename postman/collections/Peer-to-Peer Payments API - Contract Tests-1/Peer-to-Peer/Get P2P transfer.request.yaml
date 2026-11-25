@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/transfers/:transfer_id"
+method: GET
+headers:
+  Accept: application/json
+  Ocp-Apim-Subscription-Key: "{{subscriptionKey}}"
+  x-mock-response-code: "200"
+pathVariables:
+  transfer_id: string
+order: 8000

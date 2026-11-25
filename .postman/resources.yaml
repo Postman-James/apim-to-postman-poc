@@ -1,0 +1,22 @@
+# Use this workspace to collaborate
+workspace:
+  id: 187be448-fdec-4b72-9c7f-2e4f6eea2429
+
+localResources:
+  specs:
+    - ../openapi/p2p-payments.yaml
+    - ../index.yaml
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections: { ../postman/collections/Peer-to-Peer Payments API: 52176198-f5cd934a-bc66-4b0c-8f88-538f77637ff5 }
+  specs:
+    ../index.yaml: 37c032ad-7d22-4a7c-980d-ad6d3917def9
+  environments:
+    ../postman/environments/P2P - Development (Mock).environment.yaml: 52176198-a98fbea5-e963-46b4-9ad0-66ac3ae5bfd1
+  globals:
+    ../postman/globals/workspace.globals.yaml: f621ab40-48aa-43f3-8953-7e17eb20e116
+resourceNameMappings:
+  specs:
+    - ../index.yaml: P2P Payments API (APIM export)

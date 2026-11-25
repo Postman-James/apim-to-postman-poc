@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/transfers"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+  Ocp-Apim-Subscription-Key: "{{subscriptionKey}}"
+  x-mock-response-code: "201"
+body:
+  type: json
+  content: '{"recipient":"user-456","amount":1500,"currency":"USD","delivery_speed":"standard","memo":"poc"}'
+order: 7000

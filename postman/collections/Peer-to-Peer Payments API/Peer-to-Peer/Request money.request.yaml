@@ -1,0 +1,53 @@
+$kind: http-request
+description: Send a payment request to another user. The recipient receives a push notification and has 14 days to pay or decline before the request expires.
+url: "{{baseUrl}}/requests"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "amount": 1500,
+      "currency": "USD",
+      "memo": "Dinner last night 🍕",
+      "payer": "string"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "example": 1500,
+          "description": "Transaction amount",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "example": "USD",
+          "description": "ISO 4217 currency code"
+        },
+        "memo": {
+          "type": "string",
+          "maxLength": 250,
+          "example": "Dinner last night 🍕",
+          "description": "Payment note visible to both parties"
+        },
+        "payer": {
+          "type": "string",
+          "description": "Payer user ID, email, or phone number"
+        }
+      },
+      "required": [
+        "payer",
+        "amount",
+        "currency"
+      ]
+    }
+settings: {}
+examples: ./.resources/Request money.resources/examples
+order: 3000

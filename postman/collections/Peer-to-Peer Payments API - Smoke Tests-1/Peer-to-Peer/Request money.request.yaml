@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/requests"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+  Ocp-Apim-Subscription-Key: "{{subscriptionKey}}"
+  x-mock-response-code: "201"
+body:
+  type: json
+  content: '{"payer":"user-123","amount":1500,"currency":"USD","memo":"poc"}'
+order: 3000

@@ -1,0 +1,9 @@
+$kind: http-request
+description: Retrieve the authenticated user's current P2P transfer limits including daily, weekly, and per- transaction caps. Limits vary by verification tier.
+url: "{{baseUrl}}/limits"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Get transfer limits.resources/examples
+order: 1000

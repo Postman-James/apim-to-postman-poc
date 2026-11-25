@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/requests/:request_id/pay"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+  Ocp-Apim-Subscription-Key: "{{subscriptionKey}}"
+  x-mock-response-code: "201"
+pathVariables:
+  request_id: string
+body:
+  type: json
+  content: '{"funding_source_id":"acct-1","delivery_speed":"standard"}'
+order: 5000

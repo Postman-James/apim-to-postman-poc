@@ -1,0 +1,12 @@
+name: P2P - Development (Mock)
+values:
+  - key: baseUrl
+    value: 'https://106f9357-5194-4be2-a5cf-2812ba2bb9e3.mock.pstmn.io/p2p/v1'
+  - key: bearerToken
+    secret: true
+    source:
+      provider: postman
+      postman:
+        type: cloud
+        secretId: a1460e61-884c-4854-80b5-0b4c250568a3
+        vaultId: f986f631-fc14-4904-a9b8-d1eb2a35b5be

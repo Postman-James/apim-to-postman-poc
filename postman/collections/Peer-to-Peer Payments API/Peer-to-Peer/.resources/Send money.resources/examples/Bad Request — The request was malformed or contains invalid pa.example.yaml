@@ -1,0 +1,101 @@
+$kind: http-example
+name: Bad Request — The request was malformed or contains invalid parameters.
+request:
+  url: "{{baseUrl}}/transfers"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Ocp-Apim-Subscription-Key
+      value: <API Key>
+      description: "Added as a part of security scheme: apikey"
+  body:
+    type: json
+    content: |-
+      {
+        "amount": 1500,
+        "currency": "USD",
+        "delivery_speed": "standard",
+        "funding_source_id": "string",
+        "memo": "Dinner last night 🍕",
+        "recipient": "string"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "details": [
+            {
+              "field": "amount",
+              "reason": "Must be a positive number"
+            }
+          ],
+          "message": "The request body contains invalid fields.",
+          "request_id": "req-a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        }
+      }
+    $type: |-
+      {
+        "description": "Standard error response",
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "VALIDATION_ERROR",
+                "description": "Machine-readable error code"
+              },
+              "details": {
+                "type": "array",
+                "description": "Detailed error information",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "example": "email",
+                      "description": "The field that caused the error"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "example": "Must be a valid email address",
+                      "description": "Description of the validation failure"
+                    }
+                  }
+                }
+              },
+              "message": {
+                "type": "string",
+                "example": "The request body contains invalid fields.",
+                "description": "Human-readable error message"
+              },
+              "request_id": {
+                "type": "string",
+                "example": "req-550e8400-e29b-41d4-a716-446655440000",
+                "description": "Unique identifier for this request, useful for support",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "request_id"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 2000
