@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: P2P Payments API
+  version: 1.0.0
+  description: >
+    Peer-to-peer payments API. This definition stands in for an OpenAPI
+    document exported from Azure API Management (the customer's source of
+    truth). Represents what an `az apim api export` / APIOps extract yields.
+servers:
+  - url: https://api.acmefinance.example.com/p2p/v1
+    description: Production (APIM gateway)
+paths:
+  /payments:
+    get:
+      summary: List payments
+      operationId: listPayments
+      tags: [payments]
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+      responses:
+        '200':
+          description: A page of payments
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a payment
+      operationId: createPayment
+      tags: [payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /payments/{paymentId}:
+    get:
+      summary: Get a payment by id
+      operationId: getPayment
+      tags: [payments]
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /accounts/{accountId}/balance:
+    get:
+      summary: Get account balance
+      operationId: getBalance
+      tags: [accounts]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Payment:
+      type: object
+      required: [id, amount, currency, status, fromAccount, toAccount]
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+          format: double
+          minimum: 0
+        currency:
+          type: string
+          enum: [USD, EUR, GBP, CAD]
+        status:
+          type: string
+          enum: [pending, settled, failed]
+        fromAccount:
+          type: string
+        toAccount:
+          type: string
+        memo:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    PaymentRequest:
+      type: object
+      required: [amount, currency, fromAccount, toAccount]
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0
+        currency:
+          type: string
+          enum: [USD, EUR, GBP, CAD]
+        fromAccount:
+          type: string
+        toAccount:
+          type: string
+        memo:
+          type: string
+    Balance:
+      type: object
+      required: [accountId, available, currency]
+      properties:
+        accountId:
+          type: string
+        available:
+          type: number
+          format: double
+        currency:
+          type: string
+          enum: [USD, EUR, GBP, CAD]
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+security:
+  - bearerAuth: []

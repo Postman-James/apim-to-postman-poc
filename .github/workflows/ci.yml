@@ -1,0 +1,44 @@
+name: API Contract CI
+
+# Mirrors a typical Azure DevOps pipeline: install the Postman CLI,
+# lint the spec for governance, then run the contract and smoke gates.
+# The spec in this repo is the source of truth; Postman syncs from it.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  api-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Governance lint (spec)
+        # Default fail-severity is ERROR, so governance WARNINGS report without failing the build.
+        # Governance rules need a logged-in session. With POSTMAN_API_KEY set as a repo secret,
+        # this lints against your team's rulesets (OWASP, AI-readiness). Without it, we fall back
+        # to syntax-only linting so the build still runs.
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+        run: |
+          if [ -n "$POSTMAN_API_KEY" ]; then
+            echo "Linting against team governance rulesets."
+            postman spec lint ./openapi/p2p-payments.yaml --no-report-events
+          else
+            echo "POSTMAN_API_KEY not set; running syntax-only lint. Add the secret for governance (OWASP, AI-readiness)."
+            postman spec lint ./openapi/p2p-payments.yaml --no-report-events --issueType=syntax
+          fi
+
+      - name: Smoke tests
+        run: postman collection run ./postman/collections/smoke-tests.json -e ./postman/environments/dev-mock.postman_environment.json
+
+      - name: Contract tests
+        run: postman collection run ./postman/collections/contract-tests.json -e ./postman/environments/dev-mock.postman_environment.json
